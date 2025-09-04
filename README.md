@@ -61,7 +61,7 @@ lane-feedback-explorer/
 - Node.js (v14 or higher)
 - MongoDB (local or cloud instance)
 
-### Clone the Respository
+### Clone the Repository
 ```bash
 git clone https://github.com/rahul-adepu/lane-feedback-explorer.git
 ```
