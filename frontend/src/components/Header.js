@@ -7,15 +7,13 @@ const Header = ({ onAddFeedback }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center h-auto sm:h-16 py-4 sm:py-0">
           {/* Logo and Title */}
-          <div className="flex flex-col sm:flex-row sm:items-center mb-4 sm:mb-0">
-            <div className="flex-shrink-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <div className="mb-4 sm:mb-0">
+            <div className="grid grid-cols-[max-content_1fr] gap-x-2">
+              <h1 className="col-start-1 row-start-1 text-2xl sm:text-3xl font-bold text-gray-900">
                 Lane Feedback
               </h1>
-            </div>
-            <div className="mt-1 sm:mt-0 sm:ml-4">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Turning Feedback into Action
+              <p className="col-start-2 row-start-2 text-sm sm:text-base text-gray-600 mt-1">
+                - Turning Feedback into Action
               </p>
             </div>
           </div>
