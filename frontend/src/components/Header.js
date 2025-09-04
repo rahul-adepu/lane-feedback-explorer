@@ -5,17 +5,17 @@ const Header = ({ onAddFeedback }) => {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center h-auto sm:h-16 py-4 sm:py-0">
           {/* Logo and Title */}
-          <div className="flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center mb-4 sm:mb-0">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Lane Feedback
               </h1>
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-600">
-                Discover and plan better products together
+            <div className="mt-1 sm:mt-0 sm:ml-4">
+              <p className="text-xs sm:text-sm text-gray-600">
+                Turning Feedback into Action
               </p>
             </div>
           </div>
@@ -23,7 +23,7 @@ const Header = ({ onAddFeedback }) => {
           {/* Add Feedback Button */}
           <button
             onClick={onAddFeedback}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Feedback

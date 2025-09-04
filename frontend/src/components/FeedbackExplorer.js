@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, ThumbsUp, Calendar, Loader2 } from 'lucide-react';
 import { feedbackAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -7,6 +7,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
   const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [groupByCategory, setGroupByCategory] = useState(true);
@@ -16,6 +17,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
     improvement: true,
     other: true
   });
+  const searchTimeoutRef = useRef(null);
 
   const categories = [
     { value: 'bug', label: 'Bug', color: 'bg-red-100 text-red-800 border-red-200' },
@@ -31,6 +33,23 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
     { value: 'title', label: 'Title A-Z' }
   ];
 
+  // Debounce search term
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms delay
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
   // Fetch feedback data
   const fetchFeedback = useCallback(async () => {
     try {
@@ -38,7 +57,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
       const params = {
         sort: sortBy,
         ...(selectedCategory && { category: selectedCategory }),
-        ...(searchTerm && { q: searchTerm })
+        ...(debouncedSearchTerm && { q: debouncedSearchTerm })
       };
       
       const response = await feedbackAPI.getFeedback(params);
@@ -49,7 +68,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, selectedCategory, searchTerm]);
+  }, [sortBy, selectedCategory, debouncedSearchTerm]);
 
   // Fetch data when dependencies change
   useEffect(() => {
@@ -91,10 +110,10 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
   // Render feedback item
   const renderFeedbackItem = (item) => (
     <div key={item._id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getCategoryInfo(item.category).color}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getCategoryInfo(item.category).color} w-fit`}>
               {getCategoryInfo(item.category).label}
             </span>
             <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -103,7 +122,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
             </span>
           </div>
           
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
             {item.title}
           </h3>
           
@@ -115,7 +134,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
           </p>
         </div>
         
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center justify-end sm:justify-start gap-2 sm:ml-4">
           <button className="flex items-center gap-1 px-3 py-1 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors duration-200">
             <ThumbsUp className="w-4 h-4" />
             {item.votes || 0}
@@ -132,10 +151,10 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
         <Search className="w-8 h-8 text-gray-400" />
       </div>
       <h3 className="text-lg font-medium text-gray-900 mb-2">
-        {searchTerm || selectedCategory ? 'No feedback found' : 'No feedback yet'}
+        {debouncedSearchTerm || selectedCategory ? 'No feedback found' : 'No feedback yet'}
       </h3>
       <p className="text-gray-500">
-        {searchTerm || selectedCategory 
+        {debouncedSearchTerm || selectedCategory 
           ? 'Try adjusting your search or filter criteria'
           : 'Be the first to share your feedback!'
         }
@@ -157,9 +176,9 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Controls */}
       <div className="mb-8">
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col gap-4">
           {/* Search */}
-          <div className="flex-1">
+          <div className="w-full">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -173,13 +192,13 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
           </div>
 
           {/* Filter Controls */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* Category Filter */}
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none sm:w-48">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">All Categories</option>
                 {categories.map(category => (
@@ -192,11 +211,11 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
             </div>
 
             {/* Sort */}
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none sm:w-48">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 {sortOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -209,7 +228,7 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
             {/* Group Toggle */}
             <button
               onClick={() => setGroupByCategory(!groupByCategory)}
-              className={`px-4 py-2 border rounded-md text-sm font-medium transition-colors duration-200 ${
+              className={`w-full sm:w-auto px-4 py-2 border rounded-md text-sm font-medium transition-colors duration-200 ${
                 groupByCategory
                   ? 'bg-primary-600 text-white border-primary-600'
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -235,10 +254,10 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
               <div key={category.value} className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleCategory(category.value)}
-                  className="w-full px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
+                  className="w-full px-4 sm:px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${category.color}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${category.color} w-fit`}>
                       {category.label}
                     </span>
                     <span className="text-sm text-gray-500">
@@ -246,14 +265,14 @@ const FeedbackExplorer = ({ refreshTrigger }) => {
                     </span>
                   </div>
                   {expandedCategories[category.value] ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                    <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   )}
                 </button>
                 
                 {expandedCategories[category.value] && (
-                  <div className="p-6 space-y-4">
+                  <div className="p-4 sm:p-6 space-y-4">
                     {categoryFeedback.map(renderFeedbackItem)}
                   </div>
                 )}
